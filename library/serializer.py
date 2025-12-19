@@ -1,5 +1,6 @@
+from dataclasses import fields
 from rest_framework import serializers
-from .models import Author
+from .models import Author, Category, Book
 
 
 class AuthorSerializer(serializers.Serializer):
@@ -20,3 +21,20 @@ class AuthorSerializer(serializers.Serializer):
             'birth_date', instance.birth_date)
         instance.save()
         return instance
+
+
+class CategorySerializer(serializers.Serializer):
+    class Meta:
+        model = Category
+        fields = "__al__"
+
+
+class BookSerializer(serializers.Serializer):
+    author = serializers.PrimaryKeyRelatedField(
+        queryset=Author.objects.all(), required=False)
+    category = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(), required=False)
+
+    class Meta:
+        model = Book
+        fields = "__all__"

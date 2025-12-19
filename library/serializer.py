@@ -1,6 +1,7 @@
 from dataclasses import fields
 from rest_framework import serializers
-from .models import Author, Category, Book
+from .models import Author, Category, Book, Borrow
+from django.contrib.auth.models import User
 
 
 class AuthorSerializer(serializers.Serializer):
@@ -23,13 +24,13 @@ class AuthorSerializer(serializers.Serializer):
         return instance
 
 
-class CategorySerializer(serializers.Serializer):
+class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = "__al__"
+        fields = "__all__"
 
 
-class BookSerializer(serializers.Serializer):
+class BookSerializer(serializers.ModelSerializer):
     author = serializers.PrimaryKeyRelatedField(
         queryset=Author.objects.all(), required=False)
     category = serializers.PrimaryKeyRelatedField(
@@ -37,4 +38,15 @@ class BookSerializer(serializers.Serializer):
 
     class Meta:
         model = Book
+        fields = ["id", "title", "author", "category",]
+
+
+class BorrowSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), required=False)
+    book = serializers.PrimaryKeyRelatedField(
+        queryset=Book.objects.all(), required=False)
+
+    class Meta:
+        model = Borrow
         fields = "__all__"

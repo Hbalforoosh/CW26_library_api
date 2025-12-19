@@ -2,10 +2,12 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Author, Category, Book
-from .serializer import AuthorSerializer, BookSerializer, CategorySerializer
+from .models import Author, Category, Book, Borrow
+from .serializer import AuthorSerializer, BookSerializer, CategorySerializer, BorrowSerializer
 from rest_framework import status, generics, mixins
 from django.shortcuts import get_object_or_404
+from rest_framework.viewsets import ModelViewSet
+from rest_framework.decorators import action
 
 # Create your views here.
 
@@ -44,15 +46,9 @@ class AuthorDetailView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class CategoryListCreateView(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
+class CategoryListCreateView(generics.ListCreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
 
 
 class CategoryDetailView(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, generics.GenericAPIView):
@@ -77,3 +73,14 @@ class BookListCreateView(generics.ListCreateAPIView):
 class BookDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
+
+
+class BorrowViewSet(ModelViewSet):
+    queryset = Borrow.objects.all()
+    serializer_class = BorrowSerializer
+
+    @action(methods=["get"], detail=False)
+    def active(self, request):
+        borrows = Borrow.objects.filter(returned_at__isnull=True)
+        serializer = self.get_serializer(borrows, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
